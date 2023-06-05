@@ -81,12 +81,12 @@ class App {
             System.out.println("Company management");
             System.out.println();
             System.out.println("1. Exit");
-            System.out.println("2. Novel inspection");
-            System.out.println("3. Remove inspector");
-            System.out.println("4. Cost total");
-            System.out.println("5. List works");
-            System.out.println("6. List contention works");
-            System.out.println("7. List inspector");
+            System.out.println("2. Novel inspection"); //1
+            System.out.println("3. Remove inspector"); //2
+            System.out.println("4. Cost total"); //2.c
+            System.out.println("5. List works"); //2.g
+            System.out.println("6. List contention works"); //3.d
+            System.out.println("7. List inspector"); //3.e
             System.out.print(">");
             Scanner s = new Scanner(System.in);
             int result = s.nextInt();
@@ -200,41 +200,86 @@ class App {
     }
 
     private void totalCost() {
-        // TODO
         System.out.println("totalCost()");
-
-    }
-
-    private void listWorks() {
-        // TODO
-
-        System.out.println("listWorks()");
         Connection conn = null;
-        Statement stmt = null;
+        PreparedStatement pstmt;
         ResultSet rs = null;
         try {
-            // JDBC and PostgreSQL: https://jdbc.postgresql.org/
-            // PostgreSQL: https://www.postgresql.org/docs/7.4/jdbc-use.html
 
-            // Step 1 - Load driver
-            // Class.forName("org.postgresql.Driver"); // Class.forName() is not needed since JDBC 4.0
-
-            // Step 2 -  Connecting to the Database
             conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
+            String subQuery = "SELECT id FROM tipo_estrutura WHERE tipo = ? OR tipo = ?";
+            String cmdSELECT = "SELECT tipo_estrutura, SUM(custo) AS custo_total " +
+                    "FROM OBRA_CONTENCAO " +
+                    "WHERE tipo_estrutura IN (" + subQuery + ") " +
+                    "GROUP BY tipo_estrutura";
 
-            // Step 3 - Execute statement 1
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery("select * from obra_contencao");
+            pstmt = conn.prepareStatement(cmdSELECT);
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Tipo de Estrutura 1: (muro, parede, aterro, talude, barreira ou solução mista.)");
+            String tipoDeEstrutura1 = scanner.nextLine();
+            System.out.print("Tipo de Estrutura 2: (muro, parede, aterro, talude, barreira ou solução mista.)");
+            String tipoDeEstrutura2 = scanner.nextLine();
+            pstmt.setString(1, tipoDeEstrutura1);
+            pstmt.setString(2, tipoDeEstrutura2);
+            rs = pstmt.executeQuery();
             printResults(rs);
-        } catch (SQLException sqlex) {
+        }catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
             // Step 5 Close connection
             try {
                 // free the resources of the ResultSet
                 if (rs != null) rs.close();
-                // free the resources of the Statement
-                if (stmt != null) stmt.close();
+                // close connection
+                if (conn != null) conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void listWorks() {
+        System.out.println("listWorks()");
+        Connection conn = null;
+        PreparedStatement pstmt;
+        ResultSet rs = null;
+        try {
+            conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
+            String subQuery1 = "gestor  IN (" +
+                    "                    SELECT email" +
+                    "                    FROM utilizador" +
+                    "                    WHERE NOME = ?" +
+                    "            ) or inspetor IN (" +
+                    "                    SELECT email" +
+                    "                    FROM utilizador" +
+                    "                    WHERE NOME = ?" +
+                    "            )";
+            String subQuery2 = "SELECT email\n" +
+                    "            FROM utilizador\n" +
+                    "            WHERE NOME = ?";
+            String subQuery3 = "";
+            String cmdSELECT = "SELECT TRABALHO.id FROM TRABALHO " +
+            "INNER JOIN OBRA_CONTENCAO ON TRABALHO.id_obra = OBRA_CONTENCAO.id " +
+            "WHERE (" +  subQuery1 + ") AND inspetor not in (" + subQuery2 + ");";
+
+            pstmt = conn.prepareStatement(cmdSELECT);
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Nome do Utilizador 1:");
+            String user1 = scanner.nextLine();
+            System.out.print("Nome do Utilizador 2:");
+            String user2 = scanner.nextLine();
+            pstmt.setString(1, user1);
+            pstmt.setString(2, user1);
+            pstmt.setString(3, user2);
+            rs = pstmt.executeQuery();
+            printResults(rs);
+        }catch (SQLException sqlex) {
+            System.out.println(sqlex.getMessage());
+        } finally {
+            // Step 5 Close connection
+            try {
+                // free the resources of the ResultSet
+                if (rs != null) rs.close();
                 // close connection
                 if (conn != null) conn.close();
             } catch (Exception e) {
@@ -245,9 +290,58 @@ class App {
 
     private void listContentionWorks()
     {
-        // TODO
         System.out.println("listWorks()");
+        Connection conn = null;
+        PreparedStatement pstmt;
+        ResultSet rs = null;
+        try {
 
+            conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
+            String subQuery = "";
+            String cmdSELECT = "select * " +
+                    "from OBRA_CONTENCAO " +
+                    "where " +
+                    "id not in ( " +
+                    "select id_trabalho " +
+                    "from CAMPANHA_MONITORIZACAO " +
+                    "inner join TRABALHO on " +
+                    "CAMPANHA_MONITORIZACAO.id_trabalho = TRABALHO.id " +
+                    "where" +
+                    "TRABALHO.estado in ('executado', 'validado') " +
+                    ");" ;
+
+            switch (tipoTrabalho)
+
+                  //  "  WHERE (TRABALHO.estado NOT IN (?, ?) AND TRABALHO.atrdisc = ? );";
+
+            pstmt = conn.prepareStatement(cmdSELECT);
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Estado 1: (planeado, executado, ou validado.) ");
+            String estado1 = scanner.nextLine();
+            System.out.print("Estado 2: (planeado, executado, ou validado.) ");
+            String estado2 = scanner.nextLine();
+            System.out.print("Tipo de Trabalho: (IP, IR, CM) ");
+            String tipoTrabalho = scanner.nextLine();
+
+            //pstmt.setString(1, estado1);
+            //pstmt.setString(2, estado2);
+            //pstmt.setString(3, tipoTrabalho);
+
+            rs = pstmt.executeQuery();
+            printResults(rs);
+        }catch (SQLException sqlex) {
+            System.out.println(sqlex.getMessage());
+        } finally {
+            // Step 5 Close connection
+            try {
+                // free the resources of the ResultSet
+                if (rs != null) rs.close();
+                // close connection
+                if (conn != null) conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void listInspectors()
