@@ -226,11 +226,8 @@ class App {
         }catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
-            // Step 5 Close connection
             try {
-                // free the resources of the ResultSet
                 if (rs != null) rs.close();
-                // close connection
                 if (conn != null) conn.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -257,7 +254,6 @@ class App {
             String subQuery2 = "SELECT email\n" +
                     "            FROM utilizador\n" +
                     "            WHERE NOME = ?";
-            String subQuery3 = "";
             String cmdSELECT = "SELECT TRABALHO.id FROM TRABALHO " +
             "INNER JOIN OBRA_CONTENCAO ON TRABALHO.id_obra = OBRA_CONTENCAO.id " +
             "WHERE (" +  subQuery1 + ") AND inspetor not in (" + subQuery2 + ");";
@@ -276,11 +272,8 @@ class App {
         }catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
-            // Step 5 Close connection
             try {
-                // free the resources of the ResultSet
                 if (rs != null) rs.close();
-                // close connection
                 if (conn != null) conn.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -309,8 +302,6 @@ class App {
                     "where" +
                     "TRABALHO.estado in ('executado', 'validado') " +
                     ");" ;
-
-            switch (tipoTrabalho)
 
                   //  "  WHERE (TRABALHO.estado NOT IN (?, ?) AND TRABALHO.atrdisc = ? );";
 
