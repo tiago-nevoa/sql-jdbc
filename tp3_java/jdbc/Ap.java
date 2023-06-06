@@ -223,7 +223,7 @@ class App {
             pstmt.setString(2, tipoDeEstrutura2);
             rs = pstmt.executeQuery();
             printResults(rs);
-        }catch (SQLException sqlex) {
+        } catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
             try {
@@ -255,8 +255,8 @@ class App {
                     "            FROM utilizador\n" +
                     "            WHERE NOME = ?";
             String cmdSELECT = "SELECT TRABALHO.id FROM TRABALHO " +
-            "INNER JOIN OBRA_CONTENCAO ON TRABALHO.id_obra = OBRA_CONTENCAO.id " +
-            "WHERE (" +  subQuery1 + ") AND inspetor not in (" + subQuery2 + ");";
+                    "INNER JOIN OBRA_CONTENCAO ON TRABALHO.id_obra = OBRA_CONTENCAO.id " +
+                    "WHERE (" + subQuery1 + ") AND inspetor not in (" + subQuery2 + ");";
 
             pstmt = conn.prepareStatement(cmdSELECT);
             Scanner scanner = new Scanner(System.in);
@@ -269,7 +269,7 @@ class App {
             pstmt.setString(3, user2);
             rs = pstmt.executeQuery();
             printResults(rs);
-        }catch (SQLException sqlex) {
+        } catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
             try {
@@ -281,8 +281,7 @@ class App {
         }
     }
 
-    private void listContentionWorks()
-    {
+    private void listContentionWorks() {
         System.out.println("listContentionWorks()");
         Connection conn = null;
         PreparedStatement pstmt;
@@ -295,8 +294,8 @@ class App {
             Scanner scanner = new Scanner(System.in);
             System.out.print("Tipo de Trabalho: (IP, CM)");
             String tipoTrabalho = scanner.nextLine();
-            switch (tipoTrabalho){
-                case ("IP") :
+            switch (tipoTrabalho) {
+                case ("IP"):
                     cmdSELECT = "select * " +
                             "from OBRA_CONTENCAO " +
                             "where " +
@@ -307,9 +306,9 @@ class App {
                             "INSPECAO_PRINCIPAL.id_trabalho = TRABALHO.id " +
                             "where " +
                             "TRABALHO.estado in (? , ?) " +
-                            ");" ;
-                        break;
-                case ("CM") :
+                            ");";
+                    break;
+                case ("CM"):
                     cmdSELECT = "select * " +
                             "from OBRA_CONTENCAO " +
                             "where " +
@@ -320,7 +319,7 @@ class App {
                             "CAMPANHA_MONITORIZACAO.id_trabalho = TRABALHO.id " +
                             "where " +
                             "TRABALHO.estado in (? , ?) " +
-                            ");" ;
+                            ");";
                     break;
             }
             pstmt = conn.prepareStatement(cmdSELECT);
@@ -334,7 +333,7 @@ class App {
 
             rs = pstmt.executeQuery();
             printResults(rs);
-        }catch (SQLException sqlex) {
+        } catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
             try {
@@ -345,52 +344,59 @@ class App {
             }
         }
     }
-    private void listInspectors()
-    {
+
+    private void listInspectors() {
         // TODO
         System.out.println("listInspectors");
         Connection conn = null;
-        Statement stmt = null;
+        PreparedStatement pstmt;
         ResultSet rs = null;
         try {
-            // JDBC and PostgreSQL: https://jdbc.postgresql.org/
-            // PostgreSQL: https://www.postgresql.org/docs/7.4/jdbc-use.html
-
-            // Step 1 - Load driver
-            // Class.forName("org.postgresql.Driver"); // Class.forName() is not needed since JDBC 4.0
-
-            // Step 2 -  Connecting to the Database
             conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
 
-            // Step 3 - Execute statement 1
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery("select * from obra_contencao");
+            String cmdSELECT = null;
+
+            cmdSELECT = "SELECT DISTINCT TRABALHO.inspetor " +
+                    "FROM TRABALHO " +
+                    "INNER JOIN UTILIZADOR ON TRABALHO.inspetor = UTILIZADOR.email " +
+                    "WHERE TRABALHO.id_obra IN ( " +
+                    "  SELECT id_obra " +
+                    "  FROM TRABALHO " +
+                    "  INNER JOIN UTILIZADOR ON TRABALHO.gestor = UTILIZADOR.email " +
+                    "  WHERE UTILIZADOR.nome = ? )" +
+                    "GROUP BY TRABALHO.inspetor " +
+                    "HAVING COUNT(DISTINCT TRABALHO.id_obra) = ( " +
+                    "  SELECT COUNT(DISTINCT id_obra) " +
+                    "  FROM TRABALHO " +
+                    "  INNER JOIN UTILIZADOR ON TRABALHO.gestor = UTILIZADOR.email " +
+                    "  WHERE UTILIZADOR.nome = ? )";
+
+            pstmt = conn.prepareStatement(cmdSELECT);
+            System.out.print("Nome do Gestor: ");
+            Scanner scanner = new Scanner(System.in);
+            String gestor = scanner.nextLine();
+            pstmt.setString(1, gestor);
+            pstmt.setString(2, gestor);
+
+            rs = pstmt.executeQuery();
             printResults(rs);
         } catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
-            // Step 5 Close connection
             try {
-                // free the resources of the ResultSet
                 if (rs != null) rs.close();
-                // free the resources of the Statement
-                if (stmt != null) stmt.close();
-                // close connection
                 if (conn != null) conn.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
-    }
-
-}
-
-public class Ap {
-    public static void main(String[] args) throws Exception {
-
-        String url = "jdbc:postgresql://10.62.73.58:5432/ab12?user=ab12&password=ab12&ssl=false";
-        App.getInstance().setConnectionString(url);
-        App.getInstance().Run();
     }
 }
+    public class Ap {
+        public static void main(String[] args) throws Exception {
+
+            String url = "jdbc:postgresql://10.62.73.58:5432/ab12?user=ab12&password=ab12&ssl=false";
+            App.getInstance().setConnectionString(url);
+            App.getInstance().Run();
+        }
+    }
