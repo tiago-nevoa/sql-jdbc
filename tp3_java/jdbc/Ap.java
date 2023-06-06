@@ -219,9 +219,38 @@ class App {
     }
 
     private void removeInspector() {
-        // TODO
-        System.out.println("removeInspector()");
 
+        System.out.println("removeInspector()");
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Email do inspetor a ser removido: ");
+        String emailInspetor = scanner.nextLine();
+
+        Connection conn;
+        PreparedStatement pstmt;
+        try {
+            conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
+
+            // Atualizar o campo "inspetor" com um novo valor (ou null) para os registros que referenciam o inspetor a ser removido
+            String updateQuery = "UPDATE TRABALHO SET inspetor = ? WHERE inspetor = ?";
+            pstmt = conn.prepareStatement(updateQuery);
+            pstmt.setNull(1, java.sql.Types.VARCHAR); // Definir como null ou fornecer um novo valor de inspetor
+            pstmt.setString(2, emailInspetor);
+            pstmt.executeUpdate();
+
+            // Remover o inspetor da tabela "UTILIZADOR"
+            String deleteQuery = "DELETE FROM UTILIZADOR WHERE email = ?";
+            pstmt = conn.prepareStatement(deleteQuery);
+            pstmt.setString(1, emailInspetor);
+
+            int rowsDeleted = pstmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                System.out.println("Inspetor removido com sucesso!");
+            } else {
+                System.out.println("Nenhum inspetor encontrado com o email fornecido.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void totalCost() {
