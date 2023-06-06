@@ -152,8 +152,6 @@ class App {
         int columnsCount = meta.getColumnCount();
         StringBuffer sep = new StringBuffer("\n");
 
-        // This code is just demonstrative and only works for the two
-        // columns existing in the table jdbcdemo
         for (int i = 1; i <= columnsCount; i++) {
             System.out.print(meta.getColumnLabel(i));
             System.out.print("\t");
@@ -163,11 +161,7 @@ class App {
             }
         }
         System.out.println(sep);
-        // Step 4 - Get result
         while (dr.next()) {
-            // It's not the best way to do it. But as in this case the result
-            // is to be exclusively displayed on the console, the practical
-            // result serves
             for (int i = 1; i <= columnsCount; i++) {
                 System.out.print(dr.getObject(i));
                 System.out.print("\t");
@@ -185,12 +179,43 @@ class App {
     }
 
     private void novelInspection() {
-        // IMPLEMENTED
-        System.out.println("novelInspection()");
-        String values = Model.inputData("work id, condition index and state of conservation.\n");
-        // validate all entries!
-        PrincipalInspection pi = new PrincipalInspection(values);
-        Model.registerInspection(pi);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("ID do trabalho/obra de contenção: ");
+        int idTrabalho = scanner.nextInt();
+        if (idTrabalho < 1 || idTrabalho > 13) {
+            System.out.println("ID do trabalho/obra de contenção inválido. Deve estar entre 1 e 13.");
+            return;
+        }
+
+        System.out.print("Índice de condição (0-100): ");
+        int indiceCondicao = scanner.nextInt();
+        if (indiceCondicao < 0 || indiceCondicao > 100) {
+            System.out.println("Índice de condição inválido. Deve estar entre 0 e 100.");
+            return;
+        }
+
+        System.out.print("Estado de conservação (1-100): ");
+        int estadoConservacao = scanner.nextInt();
+        if (estadoConservacao < 1 || estadoConservacao > 100) {
+            System.out.println("Estado de conservação inválido. Deve estar entre 1 e 100.");
+            return;
+        }
+
+        Connection conn;
+        PreparedStatement pstmt;
+        try {
+            conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
+            String query = "INSERT INTO INSPECAO_PRINCIPAL (id_trabalho, indice_condicao, estado_conservacao) " +
+                    "VALUES (?, ?, ?)";
+            pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, idTrabalho);
+            pstmt.setInt(2, indiceCondicao);
+            pstmt.setInt(3, estadoConservacao);
+            pstmt.executeUpdate();
+            System.out.println("Nova inspeção principal inserida com sucesso!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void removeInspector() {
@@ -392,11 +417,12 @@ class App {
         }
     }
 }
-    public class Ap {
-        public static void main(String[] args) throws Exception {
 
-            String url = "jdbc:postgresql://10.62.73.58:5432/ab12?user=ab12&password=ab12&ssl=false";
-            App.getInstance().setConnectionString(url);
-            App.getInstance().Run();
-        }
+public class Ap {
+    public static void main(String[] args) throws Exception {
+
+        String url = "jdbc:postgresql://10.62.73.58:5432/ab12?user=ab12&password=ab12&ssl=false";
+        App.getInstance().setConnectionString(url);
+        App.getInstance().Run();
     }
+}
