@@ -283,58 +283,68 @@ class App {
 
     private void listContentionWorks()
     {
-        System.out.println("listWorks()");
+        System.out.println("listContentionWorks()");
         Connection conn = null;
         PreparedStatement pstmt;
         ResultSet rs = null;
         try {
 
             conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
-            String subQuery = "";
-            String cmdSELECT = "select * " +
-                    "from OBRA_CONTENCAO " +
-                    "where " +
-                    "id not in ( " +
-                    "select id_trabalho " +
-                    "from CAMPANHA_MONITORIZACAO " +
-                    "inner join TRABALHO on " +
-                    "CAMPANHA_MONITORIZACAO.id_trabalho = TRABALHO.id " +
-                    "where" +
-                    "TRABALHO.estado in ('executado', 'validado') " +
-                    ");" ;
 
-                  //  "  WHERE (TRABALHO.estado NOT IN (?, ?) AND TRABALHO.atrdisc = ? );";
-
-            pstmt = conn.prepareStatement(cmdSELECT);
+            String cmdSELECT = null;
             Scanner scanner = new Scanner(System.in);
-            System.out.print("Estado 1: (planeado, executado, ou validado.) ");
-            String estado1 = scanner.nextLine();
-            System.out.print("Estado 2: (planeado, executado, ou validado.) ");
-            String estado2 = scanner.nextLine();
-            System.out.print("Tipo de Trabalho: (IP, IR, CM) ");
+            System.out.print("Tipo de Trabalho: (IP, CM)");
             String tipoTrabalho = scanner.nextLine();
+            switch (tipoTrabalho){
+                case ("IP") :
+                    cmdSELECT = "select * " +
+                            "from OBRA_CONTENCAO " +
+                            "where " +
+                            "id not in ( " +
+                            "select id_trabalho " +
+                            "from INSPECAO_PRINCIPAL " +
+                            "inner join TRABALHO on " +
+                            "INSPECAO_PRINCIPAL.id_trabalho = TRABALHO.id " +
+                            "where " +
+                            "TRABALHO.estado in (? , ?) " +
+                            ");" ;
+                        break;
+                case ("CM") :
+                    cmdSELECT = "select * " +
+                            "from OBRA_CONTENCAO " +
+                            "where " +
+                            "id not in ( " +
+                            "select id_trabalho " +
+                            "from CAMPANHA_MONITORIZACAO " +
+                            "inner join TRABALHO on " +
+                            "CAMPANHA_MONITORIZACAO.id_trabalho = TRABALHO.id " +
+                            "where " +
+                            "TRABALHO.estado in (? , ?) " +
+                            ");" ;
+                    break;
+            }
+            pstmt = conn.prepareStatement(cmdSELECT);
+            System.out.print("Estado 1: (planeado, executado ou validado.) ");
+            String estado1 = scanner.nextLine();
+            System.out.print("Estado 2: (planeado, executado ou validado.) ");
+            String estado2 = scanner.nextLine();
 
-            //pstmt.setString(1, estado1);
-            //pstmt.setString(2, estado2);
-            //pstmt.setString(3, tipoTrabalho);
+            pstmt.setString(1, estado1);
+            pstmt.setString(2, estado2);
 
             rs = pstmt.executeQuery();
             printResults(rs);
         }catch (SQLException sqlex) {
             System.out.println(sqlex.getMessage());
         } finally {
-            // Step 5 Close connection
             try {
-                // free the resources of the ResultSet
                 if (rs != null) rs.close();
-                // close connection
                 if (conn != null) conn.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-
     private void listInspectors()
     {
         // TODO
