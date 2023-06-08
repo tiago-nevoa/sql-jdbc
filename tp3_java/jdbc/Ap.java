@@ -115,6 +115,9 @@ class App {
         Option userInput;
         do {
             clearConsole();
+            //Restriction.enforceDateConstraint();
+            Restriction.estadoTrabalho();
+            Restriction.inspetorGestor();
             userInput = DisplayMenu();
             clearConsole();
             try {
@@ -171,9 +174,9 @@ class App {
         System.out.println();
         /*Result must be similar like:
         ListDepartment()
-        dname           dnumber     mgrssn      mgrstartdate            
+        dname           dnumber     mgrssn      mgrstartdate
         -----------------------------------------------------
-        Research        5           333445555   1988-05-22            
+        Research        5           333445555   1988-05-22
         Administration  4           987654321   1995-01-01
         */
     }
